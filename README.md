@@ -8,14 +8,14 @@ This service processes incoming payment webhook events (succeeded, failed, refun
 
 ## Development Notes
 
-- Events can arrive in any order (failure → success → failure → refund, etc.)
+- Events can arrive in any order (failure → refund → success → failure, etc.)
 - The same `event_id` with identical payload can be submitted multiple times.
 - Storage is done in memory, where normally there would be persistent disk-based storage for things that would, otherwise, be considered "memory heavy".
 - Status transitions are immutable once in certain states (e.g., PAID/REFUNDED invoices cannot fail)
-- Event history is preserved regardless of status transitions for audit purposes, to demonstrate my understanding of financial audit trails. The brief stated only to store "PAID" events, but also asked to display the entire history, so I used my discretion to store everything.
+- In the case of a duplicate request, we accept the latest object in case the webhook client wishes to correct the data. Although using different event_ids will result in a duplicate record, both will still remain available for viewing.
 - AI usage was intentionally neglected in order to demonstrate the code understanding. The only place AI was used was in assistance of creating this README file.
-- There are definitely areas of room for improvement and additional testing criteria that could be added in an environment where the scope/brief could be discussed in greater detail.
-- The only additional place that could've been improved would be handling of the timestamps for a nicer end-user experience, but this would create a compute overhead that may not be truly needed if there is a frontend able to offset this logic to the clientside. 
+- There are definitely areas of room for improvement and additional testing criteria that could be added in an environment where the scope/brief could be discussed in greater detail. You will notice some tests that do similar things, the aim is to test the "get" function and can probably be trimmed down before going out to production. Better to over-test than not!
+- I neglected the `occured_at` because we would assume that the reliability issues experienced with "Payflow" would also mean we can't be certain if `occured_at` is actually the time of the transaction, or the request. It also eliminated unneeded sorting overhead.
 
 ## Tech Stack
 
