@@ -46,11 +46,8 @@ Starts the server on the default Express port (typically 3000).
 # Run all tests
 npm test
 
-# Run tests with UI dashboard
-npm run test:ui
-
-# Run tests in watch mode
-npm test -- --watch
+# Run all tests in watch mode
+npm run test:watch
 ```
 
 ## Project Structure
