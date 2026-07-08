@@ -33,6 +33,6 @@ export interface Invoice {
   // normally I would opt for writing this to a database to reduce memory consumption.
   eventHistory: {
     // object driven with eventId as key to prevent duplicate requests. We still store a record of each duplication for debugging and audit trail.
-    [eventId: InvoiceRequest['event_id']]: InvoiceRequest[]
+    [eventId: InvoiceRequest['event_id']]: InvoiceRequest
   }
 }

@@ -6,7 +6,6 @@ import { InternalInvoiceStatus, Invoice, InvoiceRequest } from "./structs";
 export function processIncomingPaymentPayload(invoiceRequest: InvoiceRequest) {
   const {
     event_id: eventId,
-    event_type: eventType,
     invoice_id: invoiceId
   } = invoiceRequest;
   
@@ -16,12 +15,13 @@ export function processIncomingPaymentPayload(invoiceRequest: InvoiceRequest) {
       eventHistory: {}
     }
   }
-  const status: Invoice['status'] = getStatus(eventType, activeInvoices[invoiceId].status);
 
-  if(!(eventId in activeInvoices[invoiceId].eventHistory)) {
-    activeInvoices[invoiceId].eventHistory[eventId] = [];
-  }
-  activeInvoices[invoiceId].eventHistory[eventId].push(invoiceRequest);
+  // Allow overwriting of duplicate events.
+  // Alternative logging could be set up for a full audit trail of duplicate requests
+  activeInvoices[invoiceId].eventHistory[eventId] = invoiceRequest;
+
+  // always append the current event history item before checking status
+  const status: Invoice['status'] = getStatus(activeInvoices[invoiceId]);
   activeInvoices[invoiceId].status = status;
 }
 

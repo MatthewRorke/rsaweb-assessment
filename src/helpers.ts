@@ -1,16 +1,26 @@
-import { APITransactionStatus, InternalInvoiceStatus, Invoice, InvoiceRequest } from "./structs";
+import { APITransactionStatus, InternalInvoiceStatus, Invoice } from "./structs";
 
-export function getStatus(eventType: InvoiceRequest['event_type'], currentStatus: Invoice['status']): Invoice['status'] {
-  let status = currentStatus ?? InternalInvoiceStatus.UNPAID;
-  if(eventType == APITransactionStatus.SUCCEEDED && status != InternalInvoiceStatus.REFUNDED) {
-    status = InternalInvoiceStatus.PAID;
-  } else if(eventType == APITransactionStatus.FAILED
-    && currentStatus != InternalInvoiceStatus.PAID
-    && currentStatus != InternalInvoiceStatus.REFUNDED
-  ) {
-    status = InternalInvoiceStatus.FAILED;
-  } else if(eventType == APITransactionStatus.REFUNDED && currentStatus == InternalInvoiceStatus.PAID) {
-    status = InternalInvoiceStatus.REFUNDED;
-  }  
-  return status;
+export function getStatus(invoice: Invoice): Invoice['status'] {
+  let hasPaid = false;
+  let hasRefund = false;
+  let hasFail = false;
+  for(const eventId in invoice.eventHistory) {
+    const eventHistoryItem = invoice.eventHistory[eventId];
+    if(eventHistoryItem.event_type == APITransactionStatus.SUCCEEDED) {
+      hasPaid = true;
+    } else if(eventHistoryItem.event_type == APITransactionStatus.REFUNDED) {
+      hasRefund = true;
+    } else if(eventHistoryItem.event_type == APITransactionStatus.FAILED) {
+      hasFail = true;
+    }
+  }
+  
+  if(hasPaid && !hasRefund) {
+    return InternalInvoiceStatus.PAID;
+  } else if(hasPaid && hasRefund) {
+    return InternalInvoiceStatus.REFUNDED;
+  } else if(hasFail) {
+    return InternalInvoiceStatus.FAILED;
+  }
+  return InternalInvoiceStatus.UNPAID;
 }
